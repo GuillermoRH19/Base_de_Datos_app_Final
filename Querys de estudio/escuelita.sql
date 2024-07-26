@@ -61,7 +61,7 @@ on c1.StudentID = c2.StudentID;
 -- e inner join
 GO
 
-CREATE OR ALTER PROCEDURE spu_carga_incremental_Students
+CREATE OR ALTER PROCEDURE spu_carga_incremental
 AS
 begin
     begin transaction;
@@ -150,3 +150,42 @@ update StudentsC1
 set StudentStatus = 0,
 StudentName = 'Joseph Ñañu'
 where StudentID = 6
+
+go
+
+create or alter procedure spu_truncar_tabla
+@tabla nvarchar(50)
+as
+begin
+declare @sql nvarchar(50)
+set @sql = 'Truncate table'+@tabla;
+execute(@sql)
+end;
+go
+exec spu_truncar_tabla 'StudentsC2'
+
+select * from StudentsC2
+select * from StudentsC1
+go
+use Northwind
+go
+create or alter procedure spu_ventas_cliente_anio
+@fullname varchar(50),
+@anio_inicial int,
+@anio_final int
+as
+begin
+select c.CompanyName, SUM(od.quantity * od.UnitPrice) as total_ventas from 
+customers as c
+left join Orders as o
+on c.customerID=o.CustomerID
+left join [Order Details] as od
+on od.OrderID = o.OrderID
+left join Employees as e
+on e.EmployeeID = o.EmployeeID
+where CONCAT(e.FirstName,' ',e.LastName)='Nancy Davolio'
+and datepart(year,OrderDate) between @anio_inicial and @anio_final
+or c.CustomerID is null
+group by c.CompanyName
+end;
+go
